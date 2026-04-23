@@ -413,10 +413,24 @@ def calculate_heart_score(history, ecg, age_score, risk_factors, troponin):
          ``'interpretation'``.
     """
     # TODO: Students — implement this function
-    raise NotImplementedError(
-        "calculate_heart_score() is not yet implemented. "
-        "Please implement this function according to the docstring."
-    )
+    if not all(isinstance(param, int) and 0 <= param <= 2 for param in
+               [history, ecg, age_score, risk_factors, troponin]):
+        raise ValueError("All parameters must be integers with value 0, 1, or 2.")
+    score = history + ecg + age_score + risk_factors + troponin
+    if score <= 3:
+        risk_level = 'low'
+        interpretation = "Low risk (~1.7% MACE). Consider early discharge."
+    elif score <= 6:
+        risk_level = 'moderate'
+        interpretation = "Moderate risk (~12% MACE). Observe and perform serial troponins."
+    else:
+        risk_level = 'high'
+        interpretation = "High risk (~65% MACE). Early invasive strategy recommended."
+    return {
+        "score": score,
+        "risk_level": risk_level,
+        "interpretation": interpretation,
+    }
 
 
 # =============================================================================
@@ -557,7 +571,36 @@ def calculate_pecarn(age_months, gcs, altered_mental_status,
            low          → 'CT scan NOT recommended'
     """
     # TODO: Students — implement this function
-    raise NotImplementedError(
-        "calculate_pecarn() is not yet implemented. "
-        "Please implement this function according to the docstring."
-    )
+    if not (3 <= gcs <= 15):
+        raise ValueError("GCS must be between 3 and 15 inclusive.")
+    if age_months < 24:
+        if gcs < 15 or palpable_skull_fracture or altered_mental_status:
+            risk_level = 'high'
+            recommendation = 'CT scan recommended'
+            interpretation = "High risk: GCS < 15, palpable skull fracture, or altered mental status."
+        elif loss_of_consciousness or scalp_hematoma_location == 'non-frontal' or severe_mechanism or vomiting:
+            risk_level = 'intermediate'
+            recommendation = 'CT scan versus observation: individualise based on physician experience, multiple vs isolated findings, worsening symptoms, age < 3 months, parental preference'
+            interpretation = "Intermediate risk: Loss of consciousness, non-frontal scalp hematoma, severe mechanism of injury, or vomiting."
+        else:
+            risk_level = 'low'
+            recommendation = 'CT scan NOT recommended'
+            interpretation = "Low risk: None of the high or intermediate risk factors present."
+    else:
+        if gcs < 15 or signs_basal_skull_fracture or altered_mental_status:
+            risk_level = 'high'
+            recommendation = 'CT scan recommended'
+            interpretation = "High risk: GCS < 15, signs of basilar skull fracture, or altered mental status."
+        elif loss_of_consciousness or vomiting or severe_mechanism or severe_headache:
+            risk_level = 'intermediate'
+            recommendation = 'CT scan versus observation: individualise based on physician experience, multiple vs isolated findings, worsening symptoms, age < 3 months, parental preference'
+            interpretation = "Intermediate risk: Loss of consciousness, vomiting, severe mechanism of injury, or severe headache."
+        else:
+            risk_level = 'low'
+            recommendation = 'CT scan NOT recommended'
+            interpretation = "Low risk: None of the high or intermediate risk factors present."
+    return {
+        "risk_level": risk_level,
+        "recommendation": recommendation,
+        "interpretation": interpretation,
+    }
