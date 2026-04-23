@@ -413,6 +413,172 @@ def calculate_heart_score(history, ecg, age_score, risk_factors, troponin):
          ``'interpretation'``.
     """
     # TODO: Students — implement this function
+    # Validate parameters
+    for param_name, param_value in [('history', history), ('ecg', ecg), 
+                                    ('age_score', age_score), ('risk_factors', risk_factors), 
+                                    ('troponin', troponin)]:
+        if not isinstance(param_value, int) or param_value not in [0, 1, 2]:
+            raise ValueError(f"{param_name} must be an integer with value 0, 1, or 2.")
+    
+    # Calculate score
+    score = history + ecg + age_score + risk_factors + troponin
+    
+    # Determine risk level
+    if score <= 3:
+        risk_level = 'low'
+        interpretation = "Low risk (~1.7 % MACE) - consider early discharge"
+    elif score <= 6:
+        risk_level = 'moderate'
+        interpretation = "Moderate risk (~12 % MACE) - observe; serial troponins"
+    else:
+        risk_level = 'high'
+        interpretation = "High risk (~65 % MACE) - early invasive strategy"
+    
+    return {
+        'score': score,
+        'risk_level': risk_level,
+        'interpretation': interpretation
+    }
+
+
+# =============================================================================
+# PECARN - Pediatric Head Injury Decision Rule  (STUDENT TODO)
+# =============================================================================
+
+def calculate_pecarn(age_months, gcs, altered_mental_status,
+                     loss_of_consciousness, palpable_skull_fracture,
+                     scalp_hematoma_location, severe_mechanism,
+                     vomiting, severe_headache, signs_basal_skull_fracture):
+    """
+    Apply the PECARN Pediatric Head Injury Decision Rule.
+
+    The PECARN rule identifies children at very low risk of clinically
+    important traumatic brain injury (ciTBI) for whom CT can be safely
+    avoided, thereby reducing unnecessary radiation exposure.
+
+    The rule differs for children **younger than 24 months** versus those
+    **24 months and older**.
+
+    Parameters
+    ----------
+    age_months : int
+        Patient age in months.
+    gcs : int
+        Glasgow Coma Scale score (valid range 3-15).
+    altered_mental_status : bool
+        Agitation, somnolence, repetitive questioning, or slowed response
+        to verbal communication.
+    loss_of_consciousness : bool
+        Any loss of consciousness after the injury.
+    palpable_skull_fracture : bool
+        Palpable skull fracture on physical examination.
+        (Used for age < 24 months.)
+    scalp_hematoma_location : str
+        Location of scalp hematoma: ``'frontal'``, ``'non-frontal'``,
+        or ``'none'``.
+        (Used for age < 24 months; non-frontal hematomas carry intermediate
+        risk, frontal hematomas do not.)
+    severe_mechanism : bool
+        Severe mechanism of injury:
+          - Age < 24 months : fall > 3 ft, or head struck by high-impact
+            object.
+          - Age ≥ 24 months : fall > 5 ft; MVA with ejection, rollover, or
+            fatality; pedestrian or cyclist vs. vehicle; head struck by
+            high-impact object.
+    vomiting : bool
+        Vomiting after the injury.
+    severe_headache : bool
+        Severe headache reported by the child.
+        (Used for age ≥ 24 months.)
+    signs_basal_skull_fracture : bool
+        Signs of basilar skull fracture: haemotympanum, 'raccoon eyes',
+        retroauricular bruising (Battle's sign), or CSF
+        otorrhoea/rhinorrhoea.
+        (Used for age ≥ 24 months.)
+
+    Returns
+    -------
+    dict
+        ``risk_level``   - str : ``'high'``, ``'intermediate'``, or
+                                 ``'low'``.
+        ``recommendation``- str : CT management recommendation.
+        ``interpretation``- str : detailed plain-language explanation.
+
+    Raises
+    ------
+    ValueError
+        If ``gcs`` is not between 3 and 15 (inclusive).
+
+    Risk Levels
+    -----------
+    high         : CT scan recommended.
+    intermediate : CT vs. observation — individualise based on physician
+                   experience, number of findings, symptom trajectory,
+                   child age < 3 months, and parental preference.
+    low          : CT scan NOT recommended (very low risk of ciTBI < 0.02 %).
+
+    Decision Rules
+    --------------
+    **Age < 24 months**
+
+    HIGH risk (CT recommended) if **any** of:
+      • GCS < 15
+      • Palpable skull fracture
+      • Altered mental status
+
+    INTERMEDIATE risk if **any** of:
+      • Loss of consciousness
+      • Non-frontal scalp hematoma
+      • Severe mechanism of injury
+      • Vomiting
+
+    LOW risk: none of the above.
+
+    **Age ≥ 24 months**
+
+    HIGH risk (CT recommended) if **any** of:
+      • GCS < 15
+      • Signs of basilar skull fracture
+      • Altered mental status
+
+    INTERMEDIATE risk if **any** of:
+      • Loss of consciousness
+      • Vomiting
+      • Severe mechanism of injury
+      • Severe headache
+
+    LOW risk: none of the above.
+
+    TODO for Students
+    -----------------
+    Implement this function using the decision rules described above.
+
+    Steps:
+      1. Validate that ``gcs`` is between 3 and 15 (inclusive).
+         If not, raise a ``ValueError``.
+      2. Check ``age_months < 24``:
+           a. HIGH risk if GCS < 15, palpable_skull_fracture, or
+              altered_mental_status.
+           b. INTERMEDIATE risk (if not high) if loss_of_consciousness,
+              scalp_hematoma_location == 'non-frontal', severe_mechanism,
+              or vomiting.
+           c. Otherwise: LOW risk.
+      3. If ``age_months >= 24``:
+           a. HIGH risk if GCS < 15, signs_basal_skull_fracture, or
+              altered_mental_status.
+           b. INTERMEDIATE risk (if not high) if loss_of_consciousness,
+              vomiting, severe_mechanism, or severe_headache.
+           c. Otherwise: LOW risk.
+      4. Return a dict with ``'risk_level'``, ``'recommendation'``, and
+         ``'interpretation'`` using these exact recommendation strings:
+           high         → 'CT scan recommended'
+           intermediate → 'CT scan versus observation: individualise based on
+                           physician experience, multiple vs isolated findings,
+                           worsening symptoms, age < 3 months, parental
+                           preference'
+           low          → 'CT scan NOT recommended'
+    """
+    # TODO: Students — implement this function
     raise NotImplementedError(
         "calculate_heart_score() is not yet implemented. "
         "Please implement this function according to the docstring."
@@ -556,8 +722,47 @@ def calculate_pecarn(age_months, gcs, altered_mental_status,
                            preference'
            low          → 'CT scan NOT recommended'
     """
-    # TODO: Students — implement this function
-    raise NotImplementedError(
-        "calculate_pecarn() is not yet implemented. "
-        "Please implement this function according to the docstring."
-    )
+    # Validate GCS
+    if not (3 <= gcs <= 15):
+        raise ValueError("GCS must be between 3 and 15 inclusive.")
+    
+    # Determine risk level
+    if age_months < 24:
+        if gcs < 15 or palpable_skull_fracture or altered_mental_status:
+            risk_level = 'high'
+        elif (loss_of_consciousness or 
+              scalp_hematoma_location == 'non-frontal' or 
+              severe_mechanism or 
+              vomiting):
+            risk_level = 'intermediate'
+        else:
+            risk_level = 'low'
+    else:  # age_months >= 24
+        if gcs < 15 or signs_basal_skull_fracture or altered_mental_status:
+            risk_level = 'high'
+        elif (loss_of_consciousness or 
+              vomiting or 
+              severe_mechanism or 
+              severe_headache):
+            risk_level = 'intermediate'
+        else:
+            risk_level = 'low'
+    
+    # Set recommendation and interpretation
+    if risk_level == 'high':
+        recommendation = 'CT scan recommended'
+        interpretation = 'CT scan recommended'
+    elif risk_level == 'intermediate':
+        recommendation = ('CT scan versus observation: individualise based on '
+                          'physician experience, multiple vs isolated findings, '
+                          'worsening symptoms, age < 3 months, parental preference')
+        interpretation = recommendation
+    else:  # low
+        recommendation = 'CT scan NOT recommended'
+        interpretation = 'CT scan NOT recommended'
+    
+    return {
+        'risk_level': risk_level,
+        'recommendation': recommendation,
+        'interpretation': interpretation
+    }
